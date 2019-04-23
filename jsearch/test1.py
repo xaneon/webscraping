@@ -6,7 +6,9 @@ from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
 import re
 import json
+import os
 from collections import defaultdict
+from datetime import datetime
 
 loginurl = f"{indeed_baseurl}/account/login"
 
@@ -31,7 +33,6 @@ driver.find_element_by_id("login-submit-button").click()
 
 driver.get(url)
 source = driver.page_source
-driver.close()
 
 soup = BeautifulSoup(source, "html.parser")
 l = re.findall("(jobmap.*)= ({.+})", source) # get joblist with ids
@@ -48,11 +49,22 @@ for entry in d:
     d[entry]["res"] = soup.find("div", attrs={'id':"p_" + d[0]["jk"]})
     ts = d[entry]["res"].find("div", attrs={"class": "title"}).text.strip()
     company = d[entry]["res"].find("span", attrs={"class": "company"}).text.strip()
+    date = d[entry]["res"].find("span", attrs={"class": "date"}).text.strip()
+    summary = d[entry]["res"].find("div", attrs={"class": "summary"}).text.strip()
     d[entry]["title" + "_scraped"] = ts
     d[entry]["company" + "_scraped"] = company
-    # TODO: summary, a href and date
+    d[entry]["summary" + "_scraped"] = summary
+    d[entry]["date" + "_scraped"] = date
+    d[entry]["href"] =  indeed_baseurl + os.sep + d[entry]["res"].find("a").attrs["href"]
+    driver.get(d[entry]["href"])
+    d[entry]["link_content"] = BeautifulSoup(driver.page_source, "html.parser")
+    delta_min = re.sub(r"vor ([0-9]+) Minuten",r"\1", d[entry]["date_scraped"])
+    curr = f"{datetime.today().strftime('%d.%m.%Y, %H:%M')} ({delta_min})"
+    d[entry]["date"] = curr
+    # TODO: set time stamps precisely
 
 
+driver.close()
 print(d)
 
 # TODO: get joblist, and afertwards find contents by ID
