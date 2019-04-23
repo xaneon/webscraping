@@ -58,16 +58,19 @@ for entry in d:
     d[entry]["href"] =  indeed_baseurl + os.sep + d[entry]["res"].find("a").attrs["href"]
     driver.get(d[entry]["href"])
     d[entry]["link_content"] = BeautifulSoup(driver.page_source, "html.parser")
-    delta_min = re.sub(r"vor ([0-9]+) Minuten",r"\1", d[entry]["date_scraped"])
-    curr = f"{datetime.today().strftime('%d.%m.%Y, %H:%M')} ({delta_min})"
-    d[entry]["date"] = curr
+    delta_min = int(re.sub(r"vor ([0-9]+) Minute[n]*", r"\1",
+                           d[entry]["date_scraped"]))
+    # curr = f"{datetime.today().strftime} ({delta_min})"
+    curr = datetime.today()
+    curr_date = datetime(curr.year, curr.month, curr.day, curr.hour,
+                         (curr.minute - delta_min)%60)
+    d[entry]["date"] = curr_date.strftime('%d.%m.%Y, %H:%M')
     # TODO: set time stamps precisely
 
 
 driver.close()
 print(d)
 
-# TODO: get joblist, and afertwards find contents by ID
 # TODO: write function for indeed and then monster etc
 # Write Jobs to Excel table with pandas
 
