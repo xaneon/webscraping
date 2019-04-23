@@ -1,6 +1,7 @@
 import requests
 import getpass
 from myinfo import *
+from selenium import webdriver
 
 loginurl = f"{indeed_baseurl}/account/login"
 
@@ -15,12 +16,18 @@ url = (f"{indeed_baseurl}/Jobs?as_and={with_all_words}"+
 headers = {'User-Agent': 'Mozilla/5.0',  'Content-type': 'application/html'}
 payload = {'username': username, 'pass': getpass.getpass()}
 
-session = requests.session()
-session.post(loginurl, headers=headers, data=payload)
-r = session.get(url)
-# r = requests.get(url, headers=headers)
-print(r.text)
+driver = webdriver.Firefox()
 
-with open("response.html", "w") as fid:
-    fid.write(r.text)
+driver.get(loginurl)
+a = driver.find_element_by_id("login-email-input")
+print(type(a))
+
+# session = requests.session()
+# session.post(loginurl, headers=headers, data=payload)
+# r = session.get(url)
+# r = requests.get(url, headers=headers)
+# print(r.text)
+
+# with open("response.html", "w") as fid:
+#     fid.write(r.text)
 
