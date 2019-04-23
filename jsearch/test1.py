@@ -76,12 +76,14 @@ driver.close()
 # TODO: Include search string into table
 # TODO: Merge by ID
 
+df_old = pd.read_excel(os.path.join("tmp", "data.xlsx"))
 data = defaultdict(list)
 for sample, content in d.items():
     for key in content:
         data[key].append(content[key])
 df = pd.DataFrame(data, columns=data.keys(), index=data["jk"])
 df = df[df.columns.drop("jk")]
+df = pd.merge(df, df_old, left_index=True, right_on="Unnamed: 0")
 df.to_excel(os.path.join("tmp", "data.xlsx"), sheet_name="Data")
 
 with open(os.path.join("tmp", "response.html"), "w") as fid:
