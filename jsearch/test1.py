@@ -9,6 +9,7 @@ import json
 import os
 from collections import defaultdict
 from datetime import datetime
+import pandas as pd
 
 loginurl = f"{indeed_baseurl}/account/login"
 
@@ -41,15 +42,18 @@ for idx, (mapname, s) in enumerate(l):
     # curr = json.loads(re.sub(r'([a-zA-Z]+):', r' "\1": ', s.replace("\'", "\"")))
     itemlist = re.sub(r"[{}]", r"", s.replace("'", "\"")).split(",")
     for elem in itemlist:
-        tmp = elem.split(":")
-        key, value = tmp[:2]
-        d[idx][key] = value[1:-1] # remove " at the beg and end
+        if ":" in elem:
+            tmp = elem.split(":")
+            key, value = tmp[:2]
+            d[idx][key] = value[1:-1] # remove " at the beg and end
 
 for entry in d:
     d[entry]["res"] = soup.find("div", attrs={'id':"p_" + d[0]["jk"]})
     ts = d[entry]["res"].find("div", attrs={"class": "title"}).text.strip()
     company = d[entry]["res"].find("span", attrs={"class": "company"}).text.strip()
     date = d[entry]["res"].find("span", attrs={"class": "date"}).text.strip()
+    if "Gerade" in date:
+        date = "vor 0 Minuten"
     summary = d[entry]["res"].find("div", attrs={"class": "summary"}).text.strip()
     d[entry]["title" + "_scraped"] = ts
     d[entry]["company" + "_scraped"] = company
@@ -60,20 +64,22 @@ for entry in d:
     d[entry]["link_content"] = BeautifulSoup(driver.page_source, "html.parser")
     delta_min = int(re.sub(r"vor ([0-9]+) Minute[n]*", r"\1",
                            d[entry]["date_scraped"]))
-    # curr = f"{datetime.today().strftime} ({delta_min})"
     curr = datetime.today()
     curr_date = datetime(curr.year, curr.month, curr.day, curr.hour,
                          (curr.minute - delta_min)%60)
-    d[entry]["date"] = curr_date.strftime('%d.%m.%Y, %H:%M')
-    # TODO: set time stamps precisely
+    # d[entry]["date"] = curr_date.strftime('%d.%m.%Y, %H:%M')
+    d[entry]["date"] = curr_date
 
 
 driver.close()
-print(d)
 
-# TODO: write function for indeed and then monster etc
-# Write Jobs to Excel table with pandas
+data = defaultdict(list)
+for sample, content in d.items():
+    for key in content:
+        data[key].append(content[key])
+df = pd.DataFrame(data)
+df.to_excel(os.path.join("tmp", "data.xlsx"))
 
-with open("response.html", "w") as fid:
+with open(os.path.join("tmp", "response.html"), "w") as fid:
      fid.write(source)
 
