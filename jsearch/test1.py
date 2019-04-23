@@ -70,7 +70,6 @@ for entry in d:
     # d[entry]["date"] = curr_date.strftime('%d.%m.%Y, %H:%M')
     d[entry]["date"] = curr_date
 
-
 driver.close()
 
 if os.path.isfile(os.path.join("tmp", "data.xlsx")):
@@ -81,9 +80,13 @@ for sample, content in d.items():
         data[key].append(content[key])
 data["search_str"] = with_all_words
 df = pd.DataFrame(data, columns=data.keys(), index=data["jk"])
-df = df[df.columns.drop("jk")]
+# df = df[df.columns.drop("jk")]
 if os.path.isfile(os.path.join("tmp", "data.xlsx")):
-    df = pd.merge(df, df_old, left_index=True, right_on="Unnamed: 0")
+    # df = pd.merge(df, df_old, left_index=True, right_on="Unnamed: 0")
+    # df = pd.merge(df, df_old, left_on="jk", right_on="jk")
+    # df = pd.merge(df, df_old, on="jk")
+    # df = df.join(df, df_old, on="jk")
+    df = df.append(df_old, ignore_index=True)
 df.to_excel(os.path.join("tmp", "data.xlsx"), sheet_name="Data")
 
 with open(os.path.join("tmp", "response.html"), "w") as fid:
