@@ -73,12 +73,16 @@ for entry in d:
 
 driver.close()
 
+# TODO: Include search string into table
+# TODO: Merge by ID
+
 data = defaultdict(list)
 for sample, content in d.items():
     for key in content:
         data[key].append(content[key])
-df = pd.DataFrame(data)
-df.to_excel(os.path.join("tmp", "data.xlsx"))
+df = pd.DataFrame(data, columns=data.keys(), index=data["jk"])
+df = df[df.columns.drop("jk")]
+df.to_excel(os.path.join("tmp", "data.xlsx"), sheet_name="Data")
 
 with open(os.path.join("tmp", "response.html"), "w") as fid:
      fid.write(source)
