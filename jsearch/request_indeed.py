@@ -9,6 +9,7 @@ import os
 from collections import defaultdict
 from datetime import datetime
 import pandas as pd
+from IPython.core.debugger import set_trace
 
 def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgroup="",
         with_atleastoneofthesewords="", without_thesewords="",
@@ -71,8 +72,6 @@ def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgr
                              (curr.minute - delta_min)%60)
         d[entry]["date"] = curr_date
     driver.close()
-    if os.path.isfile(os.path.join("tmp", excel_fname)):
-        df_old = pd.read_excel(os.path.join("tmp", excel_fname), index_col="jk")
     data = defaultdict(list)
     for sample, content in d.items():
         for key in content:
@@ -80,9 +79,23 @@ def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgr
     data["search_str"] = with_all_words
     data["location_str"] = location
     data["radius_str [km]"] = radius
-    df = pd.DataFrame(data, columns=data.keys(), index=data["jk"])
+    df_old = pd.DataFrame()
+    # set_trace()
+    if os.path.isfile(os.path.join("tmp", excel_fname)):
+        df_old = pd.read_excel(os.path.join("tmp", excel_fname))
+        df_old = df_old[list(data.keys())]
+        # df_old = df_old.reset_index().dropna().set_index("jk")
+        df_old.set_index("jk", inplace=True)
+    df = pd.DataFrame(data, columns=data.keys())
+    #df = df[list(data.keys())]
+    df.set_index("jk", inplace=True)
+    # df = df.reset_index().dropna().set_index("jk")
     if os.path.isfile(os.path.join("tmp", excel_fname)):
         df = df.combine_first(df_old)
+        # df = df.set_index("jk", inplace=True, verify_integrity=False)
+    # df = df[list(data.keys())]
+    # df.set_index("jk", inplace=True)
+    df = df.reset_index().dropna().set_index("jk")
     df.to_excel(os.path.join("tmp", excel_fname), sheet_name=sheet_name)
     with open(os.path.join("tmp", html_fname), "w") as fid:
          fid.write(source)
