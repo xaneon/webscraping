@@ -39,7 +39,6 @@ soup = BeautifulSoup(source, "html.parser")
 l = re.findall("(jobmap.*)= ({.+})", source) # get joblist with ids
 d = defaultdict(dict)
 for idx, (mapname, s) in enumerate(l):
-    # curr = json.loads(re.sub(r'([a-zA-Z]+):', r' "\1": ', s.replace("\'", "\"")))
     itemlist = re.sub(r"[{}]", r"", s.replace("'", "\"")).split(",")
     for elem in itemlist:
         if ":" in elem:
@@ -73,7 +72,6 @@ for entry in d:
     curr_date = datetime(curr.year, curr.month, curr.day,
                          (curr.hour - delta_hour)%24,
                          (curr.minute - delta_min)%60)
-    # d[entry]["date"] = curr_date.strftime('%d.%m.%Y, %H:%M')
     d[entry]["date"] = curr_date
 
 driver.close()
@@ -86,13 +84,7 @@ for sample, content in d.items():
         data[key].append(content[key])
 data["search_str"] = with_all_words
 df = pd.DataFrame(data, columns=data.keys(), index=data["jk"])
-# df = df[df.columns.drop("jk")]
 if os.path.isfile(os.path.join("tmp", "data.xlsx")):
-    # df = pd.merge(df, df_old, left_index=True, right_on="Unnamed: 0")
-    # df = pd.merge(df, df_old, left_on="jk", right_on="jk")
-    # df = pd.merge(df, df_old, on="jk")
-    # df = df.join(df, df_old, on="jk")
-    # df = df.append(df_old, ignore_index=True, sort=False)
     df = df.combine_first(df_old)
 df.to_excel(os.path.join("tmp", "data.xlsx"), sheet_name="Data")
 
