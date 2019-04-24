@@ -83,6 +83,8 @@ for sample, content in d.items():
     for key in content:
         data[key].append(content[key])
 data["search_str"] = with_all_words
+data["location_str"] = location
+data["radius_str [km]"] = radius
 df = pd.DataFrame(data, columns=data.keys(), index=data["jk"])
 if os.path.isfile(os.path.join("tmp", "data.xlsx")):
     df = df.combine_first(df_old)
