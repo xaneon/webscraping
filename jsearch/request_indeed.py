@@ -14,7 +14,8 @@ def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgr
         with_atleastoneofthesewords="", without_thesewords="",
         with_thesewords_intitle="", without_thesecompanies="",
         from_theseportals="", radius=50, location="", fromage=15,
-        results_per_page=50, sort_by="date"):
+        results_per_page=50, sort_by="date", sheet_name="Data",
+        excel_fname="data.xlsx", html_fname="response.html"):
     loginurl = f"{indeed_baseurl}/account/login"
     url = (f"{indeed_baseurl}/Jobs?as_and={with_all_words}"+
            f"&as_phr={with_exact_wordgroup}"+
@@ -70,8 +71,8 @@ def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgr
                              (curr.minute - delta_min)%60)
         d[entry]["date"] = curr_date
     driver.close()
-    if os.path.isfile(os.path.join("tmp", "data.xlsx")):
-        df_old = pd.read_excel(os.path.join("tmp", "data.xlsx"), index_col="jk")
+    if os.path.isfile(os.path.join("tmp", excel_fname)):
+        df_old = pd.read_excel(os.path.join("tmp", excel_fname), index_col="jk")
     data = defaultdict(list)
     for sample, content in d.items():
         for key in content:
@@ -80,10 +81,10 @@ def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgr
     data["location_str"] = location
     data["radius_str [km]"] = radius
     df = pd.DataFrame(data, columns=data.keys(), index=data["jk"])
-    if os.path.isfile(os.path.join("tmp", "data.xlsx")):
+    if os.path.isfile(os.path.join("tmp", excel_fname)):
         df = df.combine_first(df_old)
-    df.to_excel(os.path.join("tmp", "data.xlsx"), sheet_name="Data")
-    with open(os.path.join("tmp", "response.html"), "w") as fid:
+    df.to_excel(os.path.join("tmp", excel_fname), sheet_name=sheet_name)
+    with open(os.path.join("tmp", html_fname), "w") as fid:
          fid.write(source)
 
 if __name__ == "__main__":
