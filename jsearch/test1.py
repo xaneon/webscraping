@@ -62,10 +62,16 @@ for entry in d:
     d[entry]["href"] =  indeed_baseurl + os.sep + d[entry]["res"].find("a").attrs["href"]
     driver.get(d[entry]["href"])
     d[entry]["link_content"] = BeautifulSoup(driver.page_source, "html.parser")
-    delta_min = int(re.sub(r"vor ([0-9]+) Minute[n]*", r"\1",
-                           d[entry]["date_scraped"]))
+    delta_min, delta_hour = 0, 0
+    if "Minute" in d[entry]["date_scraped"]:
+        delta_min = int(re.sub(r"vor ([0-9]+) Minute[n]*", r"\1",
+                               d[entry]["date_scraped"]))
+    if "Stunde" in d[entry]["date_scraped"]:
+        delta_hour = int(re.sub(r"vor ([0-9]+) Stunde[n]*", r"\1",
+                                d[entry]["date_scraped"]))
     curr = datetime.today()
-    curr_date = datetime(curr.year, curr.month, curr.day, curr.hour,
+    curr_date = datetime(curr.year, curr.month, curr.day,
+                         (curr.hour - delta_hour)%24,
                          (curr.minute - delta_min)%60)
     # d[entry]["date"] = curr_date.strftime('%d.%m.%Y, %H:%M')
     d[entry]["date"] = curr_date
@@ -86,7 +92,8 @@ if os.path.isfile(os.path.join("tmp", "data.xlsx")):
     # df = pd.merge(df, df_old, left_on="jk", right_on="jk")
     # df = pd.merge(df, df_old, on="jk")
     # df = df.join(df, df_old, on="jk")
-    df = df.append(df_old, ignore_index=True, sort=False)
+    # df = df.append(df_old, ignore_index=True, sort=False)
+    df = df.combine_first(df_old)
 df.to_excel(os.path.join("tmp", "data.xlsx"), sheet_name="Data")
 
 with open(os.path.join("tmp", "response.html"), "w") as fid:
