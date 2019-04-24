@@ -52,7 +52,7 @@ for entry in d:
     ts = d[entry]["res"].find("div", attrs={"class": "title"}).text.strip()
     company = d[entry]["res"].find("span", attrs={"class": "company"}).text.strip()
     date = d[entry]["res"].find("span", attrs={"class": "date"}).text.strip()
-    if "Gerade" in date:
+    if ("Gerade" in date) or ("Heute" in date):
         date = "vor 0 Minuten"
     summary = d[entry]["res"].find("div", attrs={"class": "summary"}).text.strip()
     d[entry]["title" + "_scraped"] = ts
@@ -73,7 +73,7 @@ for entry in d:
 driver.close()
 
 if os.path.isfile(os.path.join("tmp", "data.xlsx")):
-    df_old = pd.read_excel(os.path.join("tmp", "data.xlsx"))
+    df_old = pd.read_excel(os.path.join("tmp", "data.xlsx"), index_col="jk")
 data = defaultdict(list)
 for sample, content in d.items():
     for key in content:
@@ -86,7 +86,7 @@ if os.path.isfile(os.path.join("tmp", "data.xlsx")):
     # df = pd.merge(df, df_old, left_on="jk", right_on="jk")
     # df = pd.merge(df, df_old, on="jk")
     # df = df.join(df, df_old, on="jk")
-    df = df.append(df_old, ignore_index=True)
+    df = df.append(df_old, ignore_index=True, sort=False)
 df.to_excel(os.path.join("tmp", "data.xlsx"), sheet_name="Data")
 
 with open(os.path.join("tmp", "response.html"), "w") as fid:
