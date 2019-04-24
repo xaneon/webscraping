@@ -15,7 +15,7 @@ def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgr
         with_atleastoneofthesewords="", without_thesewords="",
         with_thesewords_intitle="", without_thesecompanies="",
         from_theseportals="", radius=50, location="", fromage=15,
-        results_per_page=50, sort_by="date", sheet_name="Data",
+        results_per_page=50, sort_by="date", score=1, sheet_name="Data",
         excel_fname="data.xlsx", html_fname="response.html"):
     loginurl = f"{indeed_baseurl}/account/login"
     url = (f"{indeed_baseurl}/Jobs?as_and={with_all_words}"+
@@ -79,16 +79,23 @@ def get(indeed_baseurl, username, password, with_all_words="", with_exact_wordgr
     data["search_str"] = with_all_words
     data["location_str"] = location
     data["radius_str [km]"] = radius
+    data["score"] = score
     df_old = pd.DataFrame()
     # set_trace()
     if os.path.isfile(os.path.join("tmp", excel_fname)):
         df_old = pd.read_excel(os.path.join("tmp", excel_fname))
         df_old = df_old[list(data.keys())]
         # df_old = df_old.reset_index().dropna().set_index("jk")
-        df_old.set_index("jk", inplace=True)
+        try:
+            df_old.set_index("jk", inplace=True)
+        except KeyError:
+            pass
     df = pd.DataFrame(data, columns=data.keys())
     #df = df[list(data.keys())]
-    df.set_index("jk", inplace=True)
+    try:
+        df.set_index("jk", inplace=True)
+    except KeyError:
+        pass
     # df = df.reset_index().dropna().set_index("jk")
     if os.path.isfile(os.path.join("tmp", excel_fname)):
         df = df.combine_first(df_old)
